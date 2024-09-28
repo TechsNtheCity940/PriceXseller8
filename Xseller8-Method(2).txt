@@ -1,0 +1,103 @@
+== Method
+
+The system will be built with a modular architecture to ensure scalability, starting with handling invoices and expanding to other document types in the future. Below is a high-level overview of how the system will work.
+
+=== 1. System Architecture
+
+The architecture will be designed as a **Document Processing Pipeline** that will consist of the following components:
+
+[plantuml]
+@startuml
+actor User as U
+package "Document Parsing System" {
+  [File Upload Module] --> [File Type Detection]
+  [File Type Detection] --> [Data Extraction Module]
+  [Data Extraction Module] --> [Data Validation & Error Handling]
+  [Data Validation & Error Handling] --> [Spreadsheet Update Module]
+}
+
+package "Optional Components" {
+  [OCR Module] --> [Data Extraction Module]
+  [Analytics & Reporting] --> [Spreadsheet Update Module]
+  [Template Configurator] --> [Data Extraction Module]
+}
+
+U --> [File Upload Module]
+@enduml
+
+- **File Upload Module**: This will allow users to upload different types of documents (PDF, JPEG, PNG, XLSX, CSV, and TXT). It will support batch uploads and provide feedback on the status of each document.
+  
+- **File Type Detection**: The system will automatically detect the file type of the uploaded document. Based on this, it will route the file through the appropriate extraction method.
+
+- **Data Extraction Module**: 
+    - For text-based files (e.g., PDFs, CSVs, TXT), the system will extract relevant fields like item name, quantity, price, and supplier.
+    - For image-based files (e.g., JPEG, PNG, PDF-scans), an **OCR Module** will be used to convert the image to text for further processing.
+    - Data extraction will be template-based initially, and each document type (e.g., invoices) will have a pre-defined structure to extract data. As a part of future development, this module will support a **Template Configurator** that allows users to define extraction templates for new document types.
+
+- **Data Validation & Error Handling**: After extraction, the system will validate the data (e.g., checking for missing fields, incorrect formats) before passing it on for spreadsheet updates. If any errors are detected, users will be notified and allowed to manually correct the data.
+
+- **Spreadsheet Update Module**: 
+    - This module will handle updating the Excel spreadsheet based on the extracted data. 
+    - It will update separate sections for **monthly spending** by category (food, beverage, chemicals), **sales data**, and **item pricing**. 
+    - It will also support basic **trend analytics** (e.g., cost vs sales) and **reporting** features.
+    - In future phases, this module will also support exporting data to Google Sheets, CSV, and other formats, and integrate with analytics and reporting tools.
+
+=== 2. Data Flow
+
+1. **File Upload**: The user uploads one or more documents via the user interface.
+2. **File Type Detection**: The system detects the file type and routes it for the appropriate processing.
+3. **Data Extraction**: 
+   - Text data is extracted directly from structured files (XLSX, CSV, TXT).
+   - OCR is applied to extract text from image files (JPEG, PNG, scanned PDFs).
+4. **Data Validation**: The extracted data is validated for completeness and accuracy.
+5. **Spreadsheet Update**: The validated data is used to update an Excel spreadsheet, organized by tabs for monthly costs, sales, and pricing.
+6. **Reporting & Analytics** (future phase): Basic analytics like cost vs sales trends are generated within the spreadsheet.
+
+=== 3. Modular Design
+
+The system will be built with modularity in mind, allowing easy updates or new features to be added in the future:
+
+- **OCR Integration**: The system will use an OCR library (such as Tesseract or a cloud-based solution) to extract data from images. This module will be optional, used only for image-based documents.
+  
+- **Template-Based Extraction**: The initial system will rely on pre-defined templates for invoices. A configurable template system will be added later, allowing users to define their own document types and extraction rules.
+  
+- **Analytics and Reporting**: The system will initially focus on basic data extraction and updates to spreadsheets. Future phases will introduce more advanced analytics, like cost forecasting, trend analysis, and sales projections.
+  
+- **Integration with Other Systems**: The spreadsheet update module will be designed in a way that supports future integrations with external systems (e.g., databases, accounting software, or BI tools).
+
+=== 4. Database Design (Future Extension)
+
+In later phases, when you need to track more data or handle more complex relationships, the system will include a database to store the parsed data, making it easier to manage and query historical data.
+
+For example, the following database schema could be used:
+
+[plantuml]
+@startuml
+entity "Invoices" {
+  * invoice_id : UUID
+  * supplier : String
+  * total_cost : Float
+  * invoice_date : Date
+}
+
+entity "Invoice_Items" {
+  * item_id : UUID
+  * invoice_id : UUID
+  * item_name : String
+  * quantity : Integer
+  * price : Float
+}
+
+entity "Sales" {
+  * sale_id : UUID
+  * item_id : UUID
+  * sale_quantity : Integer
+  * sale_price : Float
+}
+
+Invoices ||--o{ Invoice_Items
+Invoice_Items ||--o{ Sales
+@enduml
+
+This relational database structure allows the system to track invoices, individual items, and sales data, which can later support more advanced forecasting and analytics.
+

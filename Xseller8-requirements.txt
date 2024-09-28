@@ -1,0 +1,40 @@
+= SPEC-1: Document Data Extraction and Cost Tracking System
+:sectnums:
+:toc:
+
+== Background
+
+The client needs a program that can ingest a variety of document formats (PDF, images, text, Excel, etc.), extract relevant data (starting with invoices), and update a central spreadsheet. The documents come primarily from food, beverage, and chemical industries, and the program should be capable of automatically populating an organized Excel file with extracted data. The central spreadsheet will be used to track monthly costs and sales data for food, beverage, and chemical supplies. The system will also be designed to support future forecasting and cost projection features.
+
+== Requirements
+
+The following are the key requirements based on the current and future needs:
+
+*Must have*:
+1. Ability to upload and process invoices from PDF, JPEG, PNG, XLSX, CSV, and TXT formats.
+2. Data extraction focused on key invoice information (e.g., item names, quantities, prices, invoice dates, suppliers, etc.).
+3. Automatic updating of a central Excel spreadsheet, specifically organized to track:
+    - Monthly food, beverage, and chemical costs.
+    - Sales data for the month.
+    - Current item pricing from the invoices.
+4. The spreadsheet must have separate sections or tabs for:
+    - Total monthly spending per category (food, beverage, chemical).
+    - Up-to-date pricing for items.
+    - Sales data for each category.
+5. Modular design to handle multiple types of data points (currently food, beverage, chemical invoices).
+6. Error handling and verification of extracted data before updates.
+7. Support for manual corrections in case of parsing errors.
+
+*Should have*:
+1. A system that is adaptable to handle non-invoice documents in the future (e.g., contracts, receipts).
+2. Ability to process multiple document uploads in a single batch.
+3. Export data to various spreadsheet formats in the future (e.g., Google Sheets, CSV, or a database).
+4. The spreadsheet should support reporting on monthly cost vs sales performance.
+5. Optical Character Recognition (OCR) for image-based documents (JPEG, PNG, PDF).
+6. A configurable interface for users to define new data extraction templates.
+7. Basic analytics and reporting features for sales/cost trends.
+
+*Won't have (initially)*:
+1. Complex workflow or multi-user handling (initial version targets individual users).
+2. AI-based prediction or machine learning features for unstructured documents (can be added later).
+3. Fully automated forecasting and projection models (to be added in a future phase).

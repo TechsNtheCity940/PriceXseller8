@@ -1,0 +1,307 @@
+= SPEC-1: Document Data Extraction and Cost Tracking System
+:sectnums:
+:toc:
+
+== Background
+
+The client needs a program that can ingest a variety of document formats (PDF, images, text, Excel, etc.), extract relevant data (starting with invoices), and update a central spreadsheet. The documents come primarily from food, beverage, and chemical industries, and the program should be capable of automatically populating an organized Excel file with extracted data. The central spreadsheet will be used to track monthly costs and sales data for food, beverage, and chemical supplies. The system will also be designed to support future forecasting and cost projection features.
+
+== Requirements
+
+The following are the key requirements based on the current and future needs:
+
+*Must have*:
+1. Ability to upload and process invoices from PDF, JPEG, PNG, XLSX, CSV, and TXT formats.
+2. Data extraction focused on key invoice information (e.g., item names, quantities, prices, invoice dates, suppliers, etc.).
+3. Automatic updating of a central Excel spreadsheet, specifically organized to track:
+    - Monthly food, beverage, and chemical costs.
+    - Sales data for the month.
+    - Current item pricing from the invoices.
+4. The spreadsheet must have separate sections or tabs for:
+    - Total monthly spending per category (food, beverage, chemical).
+    - Up-to-date pricing for items.
+    - Sales data for each category.
+5. Modular design to handle multiple types of data points (currently food, beverage, chemical invoices).
+6. Error handling and verification of extracted data before updates.
+7. Support for manual corrections in case of parsing errors.
+
+*Should have*:
+1. A system that is adaptable to handle non-invoice documents in the future (e.g., contracts, receipts).
+2. Ability to process multiple document uploads in a single batch.
+3. Export data to various spreadsheet formats in the future (e.g., Google Sheets, CSV, or a database).
+4. The spreadsheet should support reporting on monthly cost vs sales performance.
+5. Optical Character Recognition (OCR) for image-based documents (JPEG, PNG, PDF).
+6. A configurable interface for users to define new data extraction templates.
+7. Basic analytics and reporting features for sales/cost trends.
+
+*Won't have (initially)*:
+1. Complex workflow or multi-user handling (initial version targets individual users).
+2. AI-based prediction or machine learning features for unstructured documents (can be added later).
+3. Fully automated forecasting and projection models (to be added in a future phase).
+
+== Method
+
+The system will be built with a modular architecture to ensure scalability, starting with handling invoices and expanding to other document types in the future. Below is a high-level overview of how the system will work.
+
+=== 1. System Architecture
+
+The architecture will be designed as a **Document Processing Pipeline** that will consist of the following components:
+
+[plantuml]
+@startuml
+actor User as U
+package "Document Parsing System" {
+  [File Upload Module] --> [File Type Detection]
+  [File Type Detection] --> [Data Extraction Module]
+  [Data Extraction Module] --> [Data Validation & Error Handling]
+  [Data Validation & Error Handling] --> [Spreadsheet Update Module]
+}
+
+package "Optional Components" {
+  [OCR Module] --> [Data Extraction Module]
+  [Analytics & Reporting] --> [Spreadsheet Update Module]
+  [Template Configurator] --> [Data Extraction Module]
+}
+
+U --> [File Upload Module]
+@enduml
+
+- **File Upload Module**: This will allow users to upload different types of documents (PDF, JPEG, PNG, XLSX, CSV, and TXT). It will support batch uploads and provide feedback on the status of each document.
+  
+- **File Type Detection**: The system will automatically detect the file type of the uploaded document. Based on this, it will route the file through the appropriate extraction method.
+
+- **Data Extraction Module**: 
+    - For text-based files (e.g., PDFs, CSVs, TXT), the system will extract relevant fields like item name, quantity, price, and supplier.
+    - For image-based files (e.g., JPEG, PNG, PDF-scans), an **OCR Module** will be used to convert the image to text for further processing.
+    - Data extraction will be template-based initially, and each document type (e.g., invoices) will have a pre-defined structure to extract data. As a part of future development, this module will support a **Template Configurator** that allows users to define extraction templates for new document types.
+
+- **Data Validation & Error Handling**: After extraction, the system will validate the data (e.g., checking for missing fields, incorrect formats) before passing it on for spreadsheet updates. If any errors are detected, users will be notified and allowed to manually correct the data.
+
+- **Spreadsheet Update Module**: 
+    - This module will handle updating the Excel spreadsheet based on the extracted data. 
+    - It will update separate sections for **monthly spending** by category (food, beverage, chemicals), **sales data**, and **item pricing**. 
+    - It will also support basic **trend analytics** (e.g., cost vs sales) and **reporting** features.
+    - In future phases, this module will also support exporting data to Google Sheets, CSV, and other formats, and integrate with analytics and reporting tools.
+
+=== 2. Data Flow
+
+1. **File Upload**: The user uploads one or more documents via the user interface.
+2. **File Type Detection**: The system detects the file type and routes it for the appropriate processing.
+3. **Data Extraction**: 
+   - Text data is extracted directly from structured files (XLSX, CSV, TXT).
+   - OCR is applied to extract text from image files (JPEG, PNG, scanned PDFs).
+4. **Data Validation**: The extracted data is validated for completeness and accuracy.
+5. **Spreadsheet Update**: The validated data is used to update an Excel spreadsheet, organized by tabs for monthly costs, sales, and pricing.
+6. **Reporting & Analytics** (future phase): Basic analytics like cost vs sales trends are generated within the spreadsheet.
+
+=== 3. Modular Design
+
+The system will be built with modularity in mind, allowing easy updates or new features to be added in the future:
+
+- **OCR Integration**: The system will use an OCR library (such as Tesseract or a cloud-based solution) to extract data from images. This module will be optional, used only for image-based documents.
+  
+- **Template-Based Extraction**: The initial system will rely on pre-defined templates for invoices. A configurable template system will be added later, allowing users to define their own document types and extraction rules.
+  
+- **Analytics and Reporting**: The system will initially focus on basic data extraction and updates to spreadsheets. Future phases will introduce more advanced analytics, like cost forecasting, trend analysis, and sales projections.
+  
+- **Integration with Other Systems**: The spreadsheet update module will be designed in a way that supports future integrations with external systems (e.g., databases, accounting software, or BI tools).
+
+=== 4. Database Design (Future Extension)
+
+In later phases, when you need to track more data or handle more complex relationships, the system will include a database to store the parsed data, making it easier to manage and query historical data.
+
+For example, the following database schema could be used:
+
+[plantuml]
+@startuml
+entity "Invoices" {
+  * invoice_id : UUID
+  * supplier : String
+  * total_cost : Float
+  * invoice_date : Date
+}
+
+entity "Invoice_Items" {
+  * item_id : UUID
+  * invoice_id : UUID
+  * item_name : String
+  * quantity : Integer
+  * price : Float
+}
+
+entity "Sales" {
+  * sale_id : UUID
+  * item_id : UUID
+  * sale_quantity : Integer
+  * sale_price : Float
+}
+
+Invoices ||--o{ Invoice_Items
+Invoice_Items ||--o{ Sales
+@enduml
+
+This relational database structure allows the system to track invoices, individual items, and sales data, which can later support more advanced forecasting and analytics.
+
+== Implementation
+
+=== 1. Technology Stack
+
+The following technologies will be used to build the system:
+
+- **Backend**: Python is recommended for the backend due to its powerful libraries for parsing, OCR, and data handling. Flask or FastAPI can be used for creating the web API for file uploads and processing.
+  
+- **File Parsing & OCR**:
+  - **PDF**: Use libraries such as `PyPDF2` or `pdfplumber` for parsing PDFs.
+  - **Excel & CSV**: Use `pandas` and `openpyxl` to read and update Excel and CSV files.
+  - **OCR**: For images, use the Tesseract OCR library (`pytesseract`) or a cloud-based solution like Google Vision or AWS Textract for more accurate recognition.
+  
+- **Spreadsheet Management**: 
+  - Start with direct Excel updates using `openpyxl` or `pandas`.
+  - Future integration with Google Sheets via their API or even a database for more complex handling.
+  
+- **Frontend (optional)**: A simple web interface can be built using React or Vue.js to allow users to upload documents and see processing results.
+
+- **Database (future phase)**: PostgreSQL or MySQL can be used for storing invoice data and tracking item costs and sales across time for analytics and forecasting.
+
+=== 2. Implementation Steps
+
+The development will be broken down into the following steps:
+
+==== Phase 1: Core Functionality (Invoicing & Spreadsheet Updates)
+
+1. **Set up File Upload Module**:
+   - Build the web API using Flask or FastAPI to accept file uploads.
+   - Implement file type detection (based on extensions or file headers).
+
+2. **Implement Data Extraction for PDFs, Excel, and CSVs**:
+   - For PDFs, use `pdfplumber` or `PyPDF2` to extract text and relevant data fields (e.g., item name, quantity, price).
+   - For Excel and CSV files, use `pandas` to extract similar information.
+
+3. **Implement Basic OCR** (for image-based files like JPEGs or PNGs):
+   - Integrate Tesseract or Google Vision for OCR to convert image content into text.
+   - Extract key fields from the converted text.
+
+4. **Data Validation**:
+   - Add validation logic to ensure that extracted data is complete (e.g., no missing prices or quantities) before updating the spreadsheet.
+   - Allow manual corrections if the system detects any errors.
+
+5. **Spreadsheet Update**:
+   - Use `openpyxl` to update the Excel spreadsheet with the extracted and validated data.
+   - Organize the spreadsheet into tabs or sections for:
+     - Total monthly costs by category (food, beverage, chemicals).
+     - Sales data.
+     - Item pricing updates.
+
+==== Phase 2: Basic Analytics and Reporting
+
+1. **Implement Basic Reporting Features**:
+   - Add functionality for calculating cost vs sales trends.
+   - Create summary views within the spreadsheet showing key performance indicators (KPIs) for each category (e.g., total spend, sales, and margins).
+
+2. **Batch Processing of Multiple Files**:
+   - Allow users to upload multiple documents at once and process them in batches.
+
+==== Phase 3: OCR and Template Configurator
+
+1. **Improve OCR Capabilities**:
+   - Optimize the OCR module by adding support for more advanced OCR features, such as field-by-field recognition and correcting misread characters.
+   - Integrate with cloud-based OCR solutions (Google Vision, AWS Textract) for improved accuracy.
+
+2. **Template Configurator**:
+   - Build an interface allowing users to define extraction rules for new document types, so the system can be extended to handle various kinds of invoices or receipts.
+
+==== Phase 4: Future Enhancements (Forecasting, Advanced Analytics)
+
+1. **Sales & Cost Forecasting**:
+   - Build a module for predicting future costs and sales based on historical data.
+   - Use simple statistical methods (e.g., moving averages) to forecast trends initially, with the option to expand to machine learning later.
+
+2. **Integration with Databases**:
+   - Migrate data storage from Excel to a relational database (PostgreSQL or MySQL).
+   - Use the database to store all invoice, sales, and cost data, which allows for more complex queries and analytics.
+
+3. **Advanced Reporting & Analytics**:
+   - Add dashboards for visualizing monthly performance, cost projections, and category-based expenses.
+
+=== 3. Milestones
+
+To track the progress of the implementation, the following milestones will be set:
+
+- **Milestone 1**: Complete the file upload and basic data extraction for PDFs, Excel, and CSVs.
+- **Milestone 2**: Implement basic OCR and spreadsheet updating capabilities.
+- **Milestone 3**: Add basic error handling, data validation, and manual correction features.
+- **Milestone 4**: Introduce batch processing and basic cost/sales analytics.
+- **Milestone 5**: Enhance OCR accuracy and implement the template configurator.
+- **Milestone 6**: Expand to sales forecasting and integrate with a relational database for more complex analytics.
+
+== Gathering Results
+
+To evaluate whether the system successfully addresses the requirements and performs efficiently, we will focus on key performance indicators (KPIs) and conduct testing at various stages of development. The evaluation process will be split into two parts: core functionality validation and future feature readiness.
+
+=== 1. Core Functionality Validation
+
+The first set of performance evaluations will focus on the core functionality—document parsing, data extraction, and spreadsheet updates. The following criteria will be used:
+
+==== Document Processing Accuracy
+- **Goal**: Ensure that extracted data from invoices and documents is accurate, especially key fields like item names, quantities, prices, and dates.
+- **KPIs**:
+  - 95% accuracy in data extraction from structured documents (e.g., PDFs, Excel files).
+  - 90% accuracy for data extracted via OCR from image-based files (e.g., JPEGs, scanned PDFs).
+- **Testing Method**: Perform manual tests by comparing extracted data to the original documents across different formats and scenarios (e.g., low-quality scans, various invoice formats).
+
+==== Spreadsheet Updates
+- **Goal**: Ensure that the system properly updates the central spreadsheet with no data loss or duplication.
+- **KPIs**:
+  - 100% of data entries from each upload should be reflected in the correct tab or section of the spreadsheet (e.g., monthly costs, sales).
+  - Spreadsheet structure should remain consistent, with correct formulas in place for calculations (e.g., total cost vs sales).
+- **Testing Method**: Upload multiple documents and verify that the spreadsheet updates correctly after each upload, including batch processing scenarios.
+
+==== Error Handling and Data Validation
+- **Goal**: Ensure that the system properly detects and handles errors in extracted data (e.g., missing fields, incorrect formats) and allows for manual correction.
+- **KPIs**:
+  - 100% detection rate for invalid or incomplete data.
+  - 95% of errors should be easily corrected by the user through the interface.
+- **Testing Method**: Perform negative tests (e.g., upload incomplete or malformed documents) and verify that the system catches errors and provides helpful feedback.
+
+=== 2. Future Feature Readiness
+
+As the system grows to incorporate future features such as forecasting, analytics, and handling other document types, we will evaluate its scalability and flexibility:
+
+==== Scalability for Future Features
+- **Goal**: Ensure that the system can easily scale to handle new document types, increased data volumes, and additional features like forecasting and analytics.
+- **KPIs**:
+  - The system should be able to process batches of at least 100 documents in one upload without performance degradation.
+  - Future extensions (e.g., new templates for document types, integration with databases) should require minimal changes to the existing architecture.
+- **Testing Method**: Perform load tests with multiple file uploads and assess the system’s ability to scale. Prototype new document templates and verify that the system can process them with minimal changes.
+
+==== Reporting and Analytics
+- **Goal**: Ensure that basic reporting and analytics features (e.g., cost vs sales trends) are functional and extendable.
+- **KPIs**:
+  - Reports generated by the system should be accurate, reflecting the actual cost and sales data.
+  - Analytics should be easily exportable to other formats (Excel, CSV, Google Sheets) or integrated with external systems in the future.
+- **Testing Method**: Create test data for cost and sales over multiple months and verify that the system can generate accurate reports. Assess whether these reports can be exported or integrated with other systems efficiently.
+
+=== 3. User Feedback and Iteration
+
+- **Goal**: Ensure that the system is user-friendly and meets real-world requirements.
+- **KPIs**:
+  - User satisfaction rate of 90% or higher, based on feedback collected through surveys or interviews.
+  - Minimal time required for users to correct parsing errors or make manual adjustments (less than 5 minutes per document).
+- **Testing Method**: Conduct user testing sessions with potential users (e.g., those in the food and beverage industry) and gather feedback. Use this feedback to prioritize improvements in the system.
+
+=== 4. Overall System Performance
+
+- **Goal**: Ensure that the system runs efficiently, with minimal downtime or performance bottlenecks.
+- **KPIs**:
+  - Processing time for each document upload should be under 5 seconds for text-based files and under 10 seconds for image-based files using OCR.
+  - Uptime of 99% or higher during active usage periods.
+- **Testing Method**: Monitor system performance during test uploads, track processing times, and measure overall system stability over time. Use performance monitoring tools to identify and resolve any bottlenecks or issues.
+
+=== 5. Post-Production Monitoring
+
+After the system is deployed, ongoing monitoring will be needed to ensure it continues to meet performance expectations and handle real-world data effectively. Key areas to monitor:
+
+- **System Logs**: Monitor logs for any recurring errors or warnings, especially related to document parsing or spreadsheet updates.
+- **Performance Metrics**: Continuously track processing times, document parsing accuracy, and overall system uptime.
+- **User Feedback**: Regularly collect user feedback on system performance, usability, and any challenges with document processing.
+
