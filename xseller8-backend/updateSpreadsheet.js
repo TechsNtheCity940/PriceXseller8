@@ -6,49 +6,36 @@ function updateSpreadsheet(invoiceData) {
 
   const workbook = XLSX.readFile('central_spreadsheet.xlsx');
 
-  // Get relevant sheets for costs and pricing
+  // Get relevant sheets
   const costSheet = workbook.Sheets['Monthly Costs'];
   const pricingSheet = workbook.Sheets['Pricing'];
 
   // Add data to the "Monthly Costs" sheet
-  invoiceData.items.forEach((item) => {
-    const category = getCategoryForItem(item.itemName);
+  invoiceData.items.forEach(item => {
     const lastRow = XLSX.utils.decode_range(costSheet['!ref']).e.r + 1;
 
     const newRow = [
       invoiceData.invoiceDate,
-      invoiceData.supplier,
-      category,
+      invoiceData.companyName,
       item.itemName,
       item.quantity,
-      item.price,
-      item.quantity * item.price, // Total cost for the item
+      item.unitCost,
+      item.totalPrice
     ];
     console.log(`Adding row to Monthly Costs: ${newRow}`);
     XLSX.utils.sheet_add_aoa(costSheet, [newRow], { origin: `A${lastRow + 1}` });
   });
 
-  // Update the "Pricing" sheet with the latest prices
-  invoiceData.items.forEach((item) => {
+  // Add data to the "Pricing" sheet with latest item prices
+  invoiceData.items.forEach(item => {
     const lastRow = XLSX.utils.decode_range(pricingSheet['!ref']).e.r + 1;
-    const newRow = [item.itemName, item.price];
+    const newRow = [item.itemName, item.unitCost];
     console.log(`Adding row to Pricing: ${newRow}`);
     XLSX.utils.sheet_add_aoa(pricingSheet, [newRow], { origin: `A${lastRow + 1}` });
   });
 
   // Save the updated workbook
   XLSX.writeFile(workbook, 'central_spreadsheet.xlsx');
-}
-
-// Helper function to categorize items (Food, Beverage, Chemical)
-function getCategoryForItem(itemName) {
-  if (itemName.toLowerCase().includes('food')) {
-    return 'Food';
-  } else if (itemName.toLowerCase().includes('beverage')) {
-    return 'Beverage';
-  } else {
-    return 'Chemical';
-  }
 }
 
 module.exports = { updateSpreadsheet };

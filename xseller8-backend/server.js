@@ -56,6 +56,11 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+app.get('/download-spreadsheet', (req, res) => {
+  const file = `${__dirname}/central_spreadsheet.xlsx`;
+  res.download(file);  // Set disposition and send it.
+});
+
 // Start the server
 const PORT = 5000;
 app.listen(PORT, () => {
