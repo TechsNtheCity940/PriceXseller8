@@ -4,34 +4,52 @@ const XLSX = require('xlsx');
 function updateSpreadsheet(invoiceData) {
   console.log('Updating spreadsheet with the following data:', invoiceData);
 
+  // Load the workbook and get the relevant sheets
   const workbook = XLSX.readFile('central_spreadsheet.xlsx');
-
-  // Get relevant sheets
   const costSheet = workbook.Sheets['Monthly Costs'];
   const pricingSheet = workbook.Sheets['Pricing'];
 
-  // Add data to the "Monthly Costs" sheet
-  invoiceData.items.forEach(item => {
-    const lastRow = XLSX.utils.decode_range(costSheet['!ref']).e.r + 1;
+  // Convert the "Pricing" sheet to a JSON object for easier manipulation
+  const pricingData = XLSX.utils.sheet_to_json(pricingSheet, { header: 1 });
+  
+  // Create a map for quick lookup of existing items in the "Pricing" sheet
+  const itemMap = {};
+  pricingData.forEach((row, index) => {
+    if (index > 0 && row[0]) {
+      itemMap[row[0].toLowerCase()] = index; // Map the item name to the row number
+    }
+  });
 
-    const newRow = [
+  // Add or update items in the "Pricing" and "Monthly Costs" sheets
+  invoiceData.items.forEach((item) => {
+    const itemName = item.itemName.toLowerCase();
+
+    // Check if the item exists in the pricing sheet
+    if (itemMap[itemName] !== undefined) {
+      // Update existing item price in the "Pricing" sheet
+      const rowIndex = itemMap[itemName];
+      const priceCell = `B${rowIndex + 1}`;
+      pricingSheet[priceCell] = { v: item.unitCost };
+      console.log(`Updated price for ${item.itemName}: ${item.unitCost}`);
+    } else {
+      // Add new item to the "Pricing" sheet
+      const newRow = [item.itemName, item.unitCost];
+      XLSX.utils.sheet_add_aoa(pricingSheet, [newRow], { origin: -1 });
+      console.log(`Added new item to Pricing: ${item.itemName}, Price: ${item.unitCost}`);
+    }
+
+    // Also add the item to the "Monthly Costs" sheet
+    const lastRow = XLSX.utils.decode_range(costSheet['!ref']).e.r + 1;
+    const newCostRow = [
       invoiceData.invoiceDate,
       invoiceData.companyName,
       item.itemName,
       item.quantity,
       item.unitCost,
-      item.totalPrice
+      item.totalPrice,
     ];
-    console.log(`Adding row to Monthly Costs: ${newRow}`);
-    XLSX.utils.sheet_add_aoa(costSheet, [newRow], { origin: `A${lastRow + 1}` });
-  });
-
-  // Add data to the "Pricing" sheet with latest item prices
-  invoiceData.items.forEach(item => {
-    const lastRow = XLSX.utils.decode_range(pricingSheet['!ref']).e.r + 1;
-    const newRow = [item.itemName, item.unitCost];
-    console.log(`Adding row to Pricing: ${newRow}`);
-    XLSX.utils.sheet_add_aoa(pricingSheet, [newRow], { origin: `A${lastRow + 1}` });
+    XLSX.utils.sheet_add_aoa(costSheet, [newCostRow], { origin: `A${lastRow + 1}` });
+    console.log(`Added row to Monthly Costs: ${newCostRow}`);
   });
 
   // Save the updated workbook
