@@ -81,6 +81,26 @@ function App() {
       });
   };
 
+  // Function to download the updated spreadsheet
+  const downloadSpreadsheet = () => {
+    axios({
+      url: 'http://localhost:5000/download-spreadsheet',
+      method: 'GET',
+      responseType: 'blob',  // Important to receive the file as a blob
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'updated_spreadsheet.xlsx');  // Specify the file name
+      document.body.appendChild(link);
+      link.click();  // Trigger the download
+      link.parentNode.removeChild(link);  // Clean up the element
+    }).catch((error) => {
+      console.error('Error downloading the spreadsheet:', error);
+      addLog('Error downloading spreadsheet.');
+    });
+  };
+
   return (
     <div className="App">
       {/* Branding Image */}
@@ -120,6 +140,11 @@ function App() {
         <div className="chatbot-container">
           <Chatbot log={chatLog} />
         </div>
+
+        {/* Add Save Updated Spreadsheet Button */}
+        <button className="save-spreadsheet-button" onClick={downloadSpreadsheet}>
+          Save Updated Spreadsheet
+        </button>
       </div>
     </div>
   );

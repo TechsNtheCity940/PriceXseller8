@@ -1,14 +1,11 @@
 /* Set a modern, elegant font */
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #1c1c1c;  /* Dark background */
+  background: url('/Xseller8logoBnG.png') no-repeat center top;  /* Set the logo as background */
+  background-size: cover;  /* Cover the entire background */
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  color: #f1f1f1;  /* Light text color for readability */
+  color: #f1f1f1;  /* Light text color */
 }
 
 /* Main container for the application */
@@ -32,16 +29,6 @@ h2 {
 
 h3 {
   color: #f0c674;  /* Gold */
-}
-
-/* Branding image styling */
-.branding-image {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20px;
-  margin-top: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  /* Dark shadow for depth */
 }
 
 /* File input and buttons */
@@ -124,14 +111,15 @@ tbody tr:nth-child(even) {
   background-color: #444444;  /* Slightly lighter for alternating rows */
 }
 
-/* Chatbot styling */
 .chatbot-container {
-  width: 30%;
-  height: 400px;
+  width: 300px;  /* Make the chatbox wider */
+  height: 300px;  /* Adjust the height for better visibility */
+  margin-top: 20px;  /* Add margin to the top for better spacing */
 }
 
 .chatbot-messages {
-  height: 300px;  /* Tall chat window */
+  height: 220px;  /* Adjust chat window height */
+  width: 220px; /* Adjust chat window width */
   overflow-y: auto;
   background-color: #333333;  /* Dark background for messages */
   padding: 10px;
@@ -141,12 +129,11 @@ tbody tr:nth-child(even) {
 
 .chatbot-messages p {
   color: #f1f1f1;  /* Ensure chatbot text is readable */
-  font-size: 0.9rem;
+  font-size: 1rem;  /* Slightly larger font size */
 }
 
-/* Chat input field */
 input[type="text"] {
-  width: calc(100% - 80px);
+  width: calc(100% - 90px);  /* Make input width adapt to button */
   padding: 10px;
   margin-right: 10px;
   border-radius: 8px;
@@ -154,6 +141,7 @@ input[type="text"] {
   background-color: #2a2a2a;  /* Dark input background */
   color: #f1f1f1;  /* Light text */
 }
+
 
 /* System logs styling */
 .info-panel-container {
