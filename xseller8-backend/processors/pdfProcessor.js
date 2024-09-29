@@ -1,5 +1,5 @@
-const { rotatePDF } = require('./processors/rotatePDF');
-const { extractDataFromRotatedPDF } = require('./processors/extractPDFData');
+const { rotatePDF } = require('./rotatePDF');  // Adjust path for rotatePDF.js
+const { extractDataFromRotatedPDF } = require('./extractPDFData');  // Adjust path for extractPDFData.js
 
 // Function to process the PDF: rotate it if needed and extract data
 async function processPDF(pdfBuffer) {
