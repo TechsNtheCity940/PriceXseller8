@@ -1,45 +1,22 @@
-const pdf = require('pdf-parse');
+const { rotatePDF } = require('./processors/rotatePDF');
+const { extractDataFromRotatedPDF } = require('./processors/extractPDFData');
 
-async function processPDF(fileBuffer) {
+// Function to process the PDF: rotate it if needed and extract data
+async function processPDF(pdfBuffer) {
   try {
-    // Parse the PDF content
-    const data = await pdf(fileBuffer);
+    // First, rotate the PDF if necessary
+    const rotatedPdfBuffer = await rotatePDF(pdfBuffer);
+    console.log('PDF rotation completed.');
 
-    // Split the text by new lines
-    const allText = data.text.split('\n');
-
-    // Initialize an object to hold all extracted data
-    let extractedData = {
-      companyName: '',
-      invoiceDate: '',
-      items: [],   // Stores every line as an item
-      rawData: []  // Store the entire PDF raw data for now
-    };
-
-    // Iterate through all the lines of the PDF and extract everything
-    allText.forEach((line) => {
-      // For now, push all lines into rawData
-      extractedData.rawData.push(line);
-
-      // Optionally: You could add logic to recognize key information like:
-      if (line.toLowerCase().includes('invoice date')) {
-        extractedData.invoiceDate = line.split(':')[1].trim();
-      }
-
-      if (line.toLowerCase().includes('company name')) {
-        extractedData.companyName = line.split(':')[1].trim();
-      }
-
-      // Assuming line contains items if it doesn't match invoice or company
-      extractedData.items.push(line); // Push everything into items for now
-    });
+    // Next, extract the data from the rotated PDF
+    const extractedData = await extractDataFromRotatedPDF(rotatedPdfBuffer);
+    console.log('Data extraction completed.');
 
     return extractedData;
-
   } catch (error) {
     console.error('Error processing PDF:', error);
     throw new Error('PDF processing failed');
   }
 }
 
-module.exports = processPDF;
+module.exports = { processPDF };

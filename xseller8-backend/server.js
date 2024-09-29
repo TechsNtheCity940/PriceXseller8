@@ -8,15 +8,8 @@ const { updateSpreadsheet } = require('./updateSpreadsheet');
 const app = express();
 app.use(cors());
 
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Save file with timestamp
-  }
-});
+// Multer setup for file uploads (using memory storage to avoid saving files to disk)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Upload route for processing files and updating the spreadsheet
@@ -25,21 +18,22 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     return res.status(400).send({ message: 'No file uploaded' });
   }
 
-  const filepath = req.file.path;
-  const ext = path.extname(filepath);
-
+  const ext = path.extname(req.file.originalname).toLowerCase();
   let invoiceData;
 
   try {
     if (ext === '.pdf') {
-      invoiceData = await processPDF(filepath);
+      // Process the PDF directly from memory
+      invoiceData = await processPDF(req.file.buffer);
     } else {
       return res.status(400).send({ message: 'Unsupported file type' });
     }
 
+    // Update the spreadsheet with extracted data
     updateSpreadsheet(invoiceData);
-    res.send({ message: 'File processed and spreadsheet updated', invoiceData });
+    res.status(200).send({ message: 'File processed and spreadsheet updated', invoiceData });
   } catch (error) {
+    console.error('Error processing the file:', error);  // Log the error on the server
     res.status(500).send({ message: 'Error processing file', error });
   }
 });
