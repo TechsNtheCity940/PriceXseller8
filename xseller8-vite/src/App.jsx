@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-import SpreadsheetTable from './components/SpreadsheetTable';
-import Chatbot from './components/Chatbot';
-import InfoPanel from './components/InfoPanel';
+import SpreadsheetTable from './components/SpreadsheetTable.jsx';
+import Chatbot from './components/Chatbot.jsx';
+import InfoPanel from './components/InfoPanel.jsx';
 import './App.css';
 
 function App() {
@@ -15,8 +15,8 @@ function App() {
 
   // Add log entries
   const addLog = (log) => {
-    setLogs(prevLogs => [...prevLogs, log]);
-    setChatLog(log);  // Pass log to chatbot
+    setLogs((prevLogs) => [...prevLogs, log]);
+    setChatLog(log); // Pass log to chatbot
   };
 
   // Handle file selection
@@ -37,13 +37,14 @@ function App() {
     formData.append('file', selectedFile);
 
     addLog('Uploading file...');
-    axios.post('http://localhost:5000/upload', formData)
-      .then(response => {
+    axios
+      .post('http://localhost:5000/upload', formData)
+      .then((response) => {
         setMessage(response.data.message);
         addLog('File uploaded and processed: ' + response.data.message);
         loadSpreadsheet();
       })
-      .catch(error => {
+      .catch((error) => {
         setMessage('Error uploading file');
         addLog('Error uploading file');
       });
@@ -52,8 +53,9 @@ function App() {
   // Fetch and parse the central spreadsheet
   const loadSpreadsheet = () => {
     addLog('Loading spreadsheet data...');
-    axios.get('http://localhost:5000/download-spreadsheet', { responseType: 'blob' })
-      .then(response => {
+    axios
+      .get('http://localhost:5000/download-spreadsheet', { responseType: 'blob' })
+      .then((response) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const data = new Uint8Array(e.target.result);
@@ -69,7 +71,7 @@ function App() {
         };
         reader.readAsArrayBuffer(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         setMessage('Error loading spreadsheet data');
         addLog('Error loading spreadsheet data');
       });
@@ -77,8 +79,15 @@ function App() {
 
   return (
     <div className="App">
+      {/* Branding Image */}
+      <img src="/Xseller8Logo1.png" alt="Techs in the City" className="branding-image" />
+
       <h2>Xseller8 Automated System</h2>
-      <input type="file" onChange={onFileChange} />
+
+      {/* Custom button for file upload */}
+      <input type="file" id="file" onChange={onFileChange} />
+      <label htmlFor="file">Browse...</label>
+
       <button onClick={onFileUpload}>Upload and Process File</button>
       <p>{message}</p>
 
