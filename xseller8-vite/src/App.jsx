@@ -12,6 +12,7 @@ function App() {
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [logs, setLogs] = useState([]);
   const [chatLog, setChatLog] = useState('');
+  const [rawPDFData, setRawPDFData] = useState([]); // To hold the raw PDF data
 
   // Add log entries
   const addLog = (log) => {
@@ -42,6 +43,9 @@ function App() {
       .then((response) => {
         setMessage(response.data.message);
         addLog('File uploaded and processed: ' + response.data.message);
+        
+        // Set the raw PDF data to display
+        setRawPDFData(response.data.extractedData.rawData); 
         loadSpreadsheet();
       })
       .catch((error) => {
@@ -81,8 +85,7 @@ function App() {
     <div className="App">
       {/* Branding Image */}
       <img src="/Xseller8Logo1.png" alt="Techs in the City" className="branding-image" />
-
-      <h2>Xseller8 Automated System</h2>
+      <h2>Automate Your Workload</h2>
 
       {/* Custom button for file upload */}
       <input type="file" id="file" onChange={onFileChange} />
@@ -101,6 +104,16 @@ function App() {
         {/* Info Panel */}
         <div className="info-panel-container">
           <InfoPanel logs={logs} />
+        </div>
+
+        {/* Raw PDF Data Display */}
+        <div className="raw-data-container">
+          <h3>Raw PDF Data Extracted</h3>
+          <div className="raw-data">
+            {rawPDFData.map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
         </div>
 
         {/* Chatbot */}

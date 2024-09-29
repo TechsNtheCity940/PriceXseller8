@@ -175,3 +175,21 @@ input[type="text"] {
   color: #f1f1f1;  /* Ensure logs are visible */
   font-size: 0.9rem;
 }
+
+/* Raw PDF Data Styling */
+.raw-data-container {
+  width: 100%;
+  margin-top: 20px;
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: #f1f1f1;  /* Ensure text remains readable */
+}
+
+.raw-data p {
+  margin: 5px 0;
+  color: #f1f1f1;  /* Ensure the text is readable */
+  font-size: 0.9rem;
+  line-height: 1.4rem;
+}
