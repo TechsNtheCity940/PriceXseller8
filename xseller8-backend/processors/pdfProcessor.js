@@ -1,5 +1,5 @@
-const { rotatePDF } = require('./rotatePDF');  // Adjust path for rotatePDF.js
-const { extractDataFromRotatedPDF } = require('./extractPDFData');  // Adjust path for extractPDFData.js
+const { rotatePDF } = require('./rotatePDF');
+const { extractDataFromRotatedPDF } = require('./extractPDFData');
 
 // Function to process the PDF: rotate it if needed and extract data
 async function processPDF(pdfBuffer) {
@@ -10,8 +10,13 @@ async function processPDF(pdfBuffer) {
 
     // Next, extract the data from the rotated PDF
     const extractedData = await extractDataFromRotatedPDF(rotatedPdfBuffer);
-    console.log('Data extraction completed.');
+    
+    if (!extractedData || !extractedData.items || extractedData.items.length === 0) {
+      console.error('No data extracted from PDF');
+      throw new Error('PDF extraction failed or empty data');
+    }
 
+    console.log('Data extraction completed.', extractedData);
     return extractedData;
   } catch (error) {
     console.error('Error processing PDF:', error);

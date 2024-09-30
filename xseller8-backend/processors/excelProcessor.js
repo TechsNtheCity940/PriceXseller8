@@ -2,15 +2,25 @@ const XLSX = require('xlsx');
 
 // Function to process Excel files
 function processExcel(filepath) {
-  const workbook = XLSX.readFile(filepath);
-  const sheetName = workbook.SheetNames[0]; // Use the first sheet
-  const sheet = workbook.Sheets[sheetName];
+  try {
+    const workbook = XLSX.readFile(filepath);
+    const sheetName = workbook.SheetNames[0]; // Use the first sheet
+    const sheet = workbook.Sheets[sheetName];
+    
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    const invoiceData = extractInvoiceData(jsonData);
 
-  // Convert the sheet data to JSON
-  const jsonData = XLSX.utils.sheet_to_json(sheet);
-  const invoiceData = extractInvoiceData(jsonData);
+    if (!invoiceData || invoiceData.items.length === 0) {
+      console.error('No valid invoice data found in the Excel file.');
+      throw new Error('Excel data extraction failed');
+    }
 
-  return invoiceData;
+    console.log('Excel data extraction successful.', invoiceData);
+    return invoiceData;
+  } catch (error) {
+    console.error('Error processing Excel file:', error);
+    throw new Error('Excel processing failed');
+  }
 }
 
 // Function to extract key invoice information from Excel data
@@ -22,7 +32,7 @@ function extractInvoiceData(data) {
   };
 
   data.forEach(row => {
-    // Assuming that rows have 'Supplier', 'Invoice Date', 'Item', 'Quantity', 'Price' columns
+    console.log('Processing row:', row);
     if (row['Supplier']) {
       invoiceData.supplier = row['Supplier'];
     }
@@ -35,6 +45,8 @@ function extractInvoiceData(data) {
         quantity: parseInt(row['Quantity']),
         price: parseFloat(row['Price'])
       });
+    } else {
+      console.warn('Incomplete row data:', row);
     }
   });
 
