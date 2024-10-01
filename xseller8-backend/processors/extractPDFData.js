@@ -1,43 +1,55 @@
-const pdf = require('pdf-parse');
+const fs = require('fs');
+const path = require('path');
+const { PDFDocument } = require('pdf-lib');  // Ensure correct import
 
-// Function to extract data from the rotated PDF
-async function extractDataFromRotatedPDF(rotatedPdfBuffer) {
+// Function to split a multi-page PDF into individual PDFs
+async function splitPdfIntoPages(pdfBuffer, outputDir) {
   try {
-    // Parse the rotated PDF using pdf-parse
-    const data = await pdf(rotatedPdfBuffer);
+    // Load the existing PDF document from the buffer
+    const pdfDoc = await PDFDocument.load(pdfBuffer);  // Ensure buffer is used correctly
+    const numberOfPages = pdfDoc.getPageCount();
 
-    // Split the PDF text by newlines for easier processing
-    const allText = data.text.split('\n');
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
 
-    // Example of extracted data
-    const extractedData = {
-      companyName: '',
-      invoiceDate: '',
-      items: [],
-      rawData: allText,  // Store all raw text data for now
-    };
+    // Loop through each page and create a new PDF with just that page
+    for (let i = 0; i < numberOfPages; i++) {
+      // Create a new PDF document
+      const newPdfDoc = await PDFDocument.create();
 
-    // Simple logic to extract data (customize as needed)
-    allText.forEach((line) => {
-      if (line.toLowerCase().includes('company name')) {
-        const parts = line.split(':');
-        if (parts.length > 1) {
-          extractedData.companyName = parts[1].trim();
-        }
-      } else if (line.toLowerCase().includes('invoice date')) {
-        const parts = line.split(':');
-        if (parts.length > 1) {
-          extractedData.invoiceDate = parts[1].trim();
-        }
-      }
-      // Add additional data extraction logic here (for item descriptions, prices, etc.)
-    });
+      // Copy the single page from the original document
+      const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
+      newPdfDoc.addPage(copiedPage);
 
-    return extractedData;
+      // Save the new PDF with just this page
+      const pdfBytes = await newPdfDoc.save();
+      const outputFilePath = path.join(outputDir, `page_${i + 1}.pdf`);
+
+      // Write the new PDF file to the specified directory
+      fs.writeFileSync(outputFilePath, pdfBytes);
+      console.log(`Saved page ${i + 1} as ${outputFilePath}`);
+    }
+
+    console.log(`Successfully split ${numberOfPages} pages into individual files.`);
   } catch (error) {
-    console.error('Error extracting data from rotated PDF:', error);
-    throw error;
+    console.error('Error splitting PDF into individual pages:', error);
   }
 }
 
-module.exports = { extractDataFromRotatedPDF };
+// Example usage:
+// Replace with the correct path to your PDF file and output directory
+const inputPdfPath = "D:/GitRepos/PriceXseller8/rotated_pages/invoices.pdf";
+const outputDir = 'D:/GitRepos/PriceXseller8/xseller8-backend/png_output';
+
+// Read the PDF file as a buffer
+fs.readFile(inputPdfPath, async (err, pdfBuffer) => {
+  if (err) {
+    console.error('Error reading PDF file:', err);
+    return;
+  }
+
+  // Call the function to split the PDF
+  await splitPdfIntoPages(pdfBuffer, outputDir);  // Ensure the function is called properly
+});
