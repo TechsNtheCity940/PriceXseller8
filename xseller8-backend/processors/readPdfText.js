@@ -18,4 +18,4 @@ function readPdfText(pdfFilePath) {
 }
 
 // Run the function, replace 'sample.pdf' with the path to your PDF file
-readPdfText("C:/Users/wonde/Downloads/invoices 9.24.22.pdf");
+readPdfText("D:/GitRepos/PriceXseller8/xseller8-backend/png_output/page_6.pdf");
