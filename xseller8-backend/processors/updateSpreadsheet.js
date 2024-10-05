@@ -1,5 +1,4 @@
 const XLSX = require('xlsx');
-const fs = require('fs');
 
 // Function to update Excel spreadsheet with extracted invoice data
 function updateSpreadsheet(invoiceData) {
@@ -11,75 +10,73 @@ function updateSpreadsheet(invoiceData) {
   try {
     console.log('Updating spreadsheet with the following data:', invoiceData);
 
-    // Check if the central spreadsheet file exists, otherwise create a new one
-    const filePath = 'central_spreadsheet.xlsx';
-    let workbook, sheet;
+    // Load the workbook and get the relevant sheets
+    const workbook = XLSX.readFile('central_spreadsheet.xlsx');
+    
+    const costSheet = workbook.Sheets['Monthly Costs'];
+    const pricingSheet = workbook.Sheets['Pricing'];
 
-    if (fs.existsSync(filePath)) {
-      workbook = XLSX.readFile(filePath);
-      sheet = workbook.Sheets['Running Log'];
-    } else {
-      workbook = XLSX.utils.book_new();
-      sheet = XLSX.utils.aoa_to_sheet([
-        ['ITEM #', 'ITEM NAME', 'BRAND', 'PACK/SIZE', 'PRICE', 'ORDERED', 'CONFIRMED', 'STATUS']
-      ]);
-      XLSX.utils.book_append_sheet(workbook, sheet, 'Running Log');
+    // Ensure both sheets exist before continuing
+    if (!costSheet || !pricingSheet) {
+      throw new Error('One or more sheets are missing in the workbook.');
     }
 
-    // Convert the current sheet to JSON format for easier manipulation
-    const existingData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    // Check if the sheet has a valid range
+    if (!costSheet['!ref']) {
+      // Initialize the sheet with some reference if it's empty
+      costSheet['!ref'] = 'A1';
+    }
     
-    // Create a map to easily update existing items by their name or item #
+    if (!pricingSheet['!ref']) {
+      // Initialize the sheet with some reference if it's empty
+      pricingSheet['!ref'] = 'A1';
+    }
+
+    // Convert the "Pricing" sheet to a JSON object for easier manipulation
+    const pricingData = XLSX.utils.sheet_to_json(pricingSheet, { header: 1 });
+
+    // Create a map for quick lookup of existing items in the "Pricing" sheet
     const itemMap = {};
-    existingData.forEach((row, index) => {
-      if (index > 0 && row[1]) { // Assuming the second column is the "ITEM NAME"
-        itemMap[row[1].toLowerCase()] = index; // Map the item name to its row index
+    pricingData.forEach((row, index) => {
+      if (index > 0 && row[0]) {
+        itemMap[row[0].toLowerCase()] = index; // Map the item name to the row number
       }
     });
 
-    // Track total cost of the invoice for the invoice total
-    let invoiceTotal = 0;
-
-    // Process each item from the new invoice data
+    // Add or update items in the "Pricing" and "Monthly Costs" sheets
     invoiceData.items.forEach((item) => {
       const itemName = item.itemName.toLowerCase();
-      invoiceTotal += item.unitCost * item.quantity;
 
+      // Check if the item exists in the pricing sheet
       if (itemMap[itemName] !== undefined) {
-        // Update existing item price and other details
+        // Update existing item price in the "Pricing" sheet
         const rowIndex = itemMap[itemName];
-        sheet[`E${rowIndex + 1}`] = { v: item.unitCost }; // Update "PRICE" column
-        sheet[`F${rowIndex + 1}`] = { v: item.quantity }; // Update "ORDERED" column
-        sheet[`G${rowIndex + 1}`] = { v: item.confirmed }; // Update "CONFIRMED" column
-        sheet[`H${rowIndex + 1}`] = { v: item.status };    // Update "STATUS" column
-        console.log(`Updated item: ${item.itemName}`);
+        const priceCell = `B${rowIndex + 1}`;
+        pricingSheet[priceCell] = { v: item.unitCost };
+        console.log(`Updated price for ${item.itemName}: ${item.unitCost}`);
       } else {
-        // Add a new row for a new item
-        const newRow = [
-          item.itemNumber, 
-          item.itemName, 
-          item.brand, 
-          item.packSize, 
-          item.unitCost, 
-          item.quantity, 
-          item.confirmed, 
-          item.status
-        ];
-        XLSX.utils.sheet_add_aoa(sheet, [newRow], { origin: -1 });
-        console.log(`Added new item: ${item.itemName}`);
+        // Add new item to the "Pricing" sheet
+        const newRow = [item.itemName, item.unitCost];
+        XLSX.utils.sheet_add_aoa(pricingSheet, [newRow], { origin: -1 });
+        console.log(`Added new item to Pricing: ${item.itemName}, Price: ${item.unitCost}`);
       }
+
+      // Also add the item to the "Monthly Costs" sheet
+      const lastRow = XLSX.utils.decode_range(costSheet['!ref']).e.r + 1;
+      const newCostRow = [
+        invoiceData.invoiceDate,
+        invoiceData.companyName,
+        item.itemName,
+        item.quantity,
+        item.unitCost,
+        item.totalPrice,
+      ];
+      XLSX.utils.sheet_add_aoa(costSheet, [newCostRow], { origin: `A${lastRow + 1}` });
+      console.log(`Added row to Monthly Costs: ${newCostRow}`);
     });
 
-    // Add the delivery date and invoice total at the end of the sheet
-    const lastRowIndex = XLSX.utils.decode_range(sheet['!ref']).e.r + 1;
-    sheet[`A${lastRowIndex + 2}`] = { v: 'Delivery Date:' };
-    sheet[`B${lastRowIndex + 2}`] = { v: invoiceData.invoiceDate };
-
-    sheet[`A${lastRowIndex + 3}`] = { v: 'Invoice Total:' };
-    sheet[`B${lastRowIndex + 3}`] = { v: invoiceTotal };
-
-    // Save the updated workbook back to the file
-    XLSX.writeFile(workbook, filePath);
+    // Save the updated workbook
+    XLSX.writeFile(workbook, 'central_spreadsheet.xlsx');
     console.log('Spreadsheet successfully updated.');
   } catch (error) {
     console.error('Error updating the spreadsheet:', error);
