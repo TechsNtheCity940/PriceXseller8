@@ -81,16 +81,12 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     console.error('Error processing file:', error);
     res.status(500).send({ message: 'Error processing file', error: error.message });
   }
-  
-
-// API endpoint to download the central spreadsheet
-app.get('/download-spreadsheet', (req, res) => {
-  const file = `${__dirname}/central_spreadsheet.xlsx`;
-  res.download(file);  // Send the file to the client
-});
-
-// Start the server
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-})})
+  try {
+    const PORT = 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Error starting server:', error);
+  };
+})
