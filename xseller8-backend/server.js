@@ -20,7 +20,6 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 
   const ext = path.extname(req.file.originalname).toLowerCase();
-  let outputExcelPath;
 
   try {
     if (ext === '.png' || ext === '.jpg') {
@@ -81,12 +80,14 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     console.error('Error processing file:', error);
     res.status(500).send({ message: 'Error processing file', error: error.message });
   }
-  try {
-    const PORT = 5000;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Error starting server:', error);
-  };
-})
+});
+
+// Start the server outside of routes
+try {
+  const PORT = 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} catch (error) {
+  console.error('Error starting server:', error);
+}
