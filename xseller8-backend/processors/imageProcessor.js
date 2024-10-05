@@ -1,3 +1,4 @@
+// Required libraries
 const Tesseract = require('tesseract.js');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
@@ -18,22 +19,40 @@ async function attemptOcr(imagePath) {
   }
 }
 
-// Function to convert extracted text to an Excel file
-async function saveTextToExcel(extractedText, outputExcelPath) {
+// Function to convert extracted text to an Excel file with specified headers
+async function saveTextToExcel(extractedText, outputExcelPath, deliveryDate, invoiceTotal) {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Extracted Data');
+
+    // Add the headers to the first row
+    const headers = ['Item#', 'Item Name', 'Brand', 'Pack Size', 'Price', 'Ordered', 'Confirmed Status'];
+    worksheet.addRow(headers);
 
     // Split text into lines and further into cells based on common delimiters (e.g., tabs or spaces)
     const lines = extractedText.split('\n');
     lines.forEach((line, rowIndex) => {
       const cells = line.split(/\t|\s{2,}/); // Split by tabs or multiple spaces
-      cells.forEach((cell, colIndex) => {
-        worksheet.getCell(rowIndex + 1, colIndex + 1).value = cell.trim();
-      });
+      worksheet.addRow(cells.map(cell => cell.trim())); // Add each row of data
     });
 
-    // Save workbook to file
+    // Add delivery date and invoice total at the bottom of the sheet
+    const lastRow = worksheet.lastRow.number + 2;
+    worksheet.getCell(`A${lastRow}`).value = 'Delivery Date:';
+    worksheet.getCell(`B${lastRow}`).value = deliveryDate || 'Not Available';
+
+    worksheet.getCell(`A${lastRow + 1}`).value = 'Invoice Total:';
+    worksheet.getCell(`B${lastRow + 1}`).value = invoiceTotal || 'Not Available';
+
+    // Adjust column widths for better readability
+    worksheet.columns.forEach((column) => {
+      const maxLength = column.values.reduce((prev, curr) => {
+        return Math.max(prev, curr ? curr.toString().length : 0);
+      }, 10);
+      column.width = maxLength + 2; // Adjust column width
+    });
+
+    // Save the workbook to the specified path
     await workbook.xlsx.writeFile(outputExcelPath);
     console.log(`Extracted data saved to Excel file: ${outputExcelPath}`);
   } catch (error) {
@@ -41,21 +60,8 @@ async function saveTextToExcel(extractedText, outputExcelPath) {
   }
 }
 
-// Main function to process a PNG file and save data to Excel
-async function main() {
-  const pngFilePath = "F:/repogit/Xseller8/xseller8-backend/uploads/BEK.png"; // Update with the path to your PNG file
-  const outputExcelPath = 'F:/repogit/Xseller8/xseller8-backend/png_output/extracted_data.xlsx'; // Update with the desired output path
-
-  // Step 1: Extract text from the image
-  const extractedText = await attemptOcr(pngFilePath);
-
-  if (extractedText) {
-    // Step 2: Save the extracted text to an Excel file
-    await saveTextToExcel(extractedText, outputExcelPath);
-  } else {
-    console.error('Failed to extract any text from the image.');
-  }
-}
-
-// Run the main function
-main();
+// Exporting functions to be used in server.js or other files
+module.exports = {
+  attemptOcr,
+  saveTextToExcel
+};

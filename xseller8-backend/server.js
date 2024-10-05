@@ -1,9 +1,10 @@
 const express = require('express');
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
+const { attemptOcr, saveTextToExcel } = require('F:/repogit/Xseller8/Xseller8-backend/processes/imageProcessor'); // Updated path
+const { updateSpreadsheet } = require('F:/repogit/Xseller8/Xseller8-backend/processes/updateSpreadsheet'); // Updated path
 const cors = require('cors');
-const { tryPreprocessingAndExtract } = require('./processors/imageProcessor');
-const { updateSpreadsheet } = require('./updateSpreadsheet');
 
 const app = express();
 app.use(cors());
@@ -12,46 +13,66 @@ app.use(cors());
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Upload route for processing files and updating the spreadsheet
+// Upload route
 app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send({ message: 'No file uploaded' });
   }
 
   const ext = path.extname(req.file.originalname).toLowerCase();
-  let invoiceData;
+  let outputExcelPath;
 
   try {
-    if (ext === '.png') {
-      // Save the uploaded file to disk temporarily for processing
+    if (ext === '.png' || ext === '.jpg') {
+      // Save uploaded file temporarily for OCR
       const tempFilePath = `./uploads/${req.file.originalname}`;
       await fs.promises.writeFile(tempFilePath, req.file.buffer);
 
-      // Extract data from the PNG file using OCR
-      const extractedText = await tryPreprocessingAndExtract(tempFilePath);
+      // Perform OCR to extract text
+      const extractedText = await attemptOcr(tempFilePath);
 
       if (!extractedText) {
         return res.status(500).send({ message: 'Failed to extract text from the image' });
       }
 
-      // Convert extracted text to JSON-like structure
-      const lines = extractedText.split('\n');
-      invoiceData = lines.map(line => {
-        const cells = line.split(/\t|\s{2,}/);
-        return {
-          itemName: cells[0]?.trim(),
-          itemCost: parseFloat(cells[1]?.trim()) || 0,
-        };
-      }).filter(item => item.itemName);
-    } else {
-      return res.status(400).send({ message: 'Unsupported file type' });
-    }
+      // Generate output path for Excel file based on the uploaded file name
+      outputExcelPath = `./uploads/processed/${path.parse(req.file.originalname).name}_extracted.xlsx`;
 
-    // Update the spreadsheet with extracted data
-    updateSpreadsheet({ items: invoiceData });
-    res.status(200).send({ message: 'File processed and spreadsheet updated', invoiceData });
+      // Ensure the processed folder exists
+      if (!fs.existsSync('./uploads/processed')) {
+        fs.mkdirSync('./uploads/processed', { recursive: true });
+      }
+
+      // Save extracted text to an Excel file
+      await saveTextToExcel(extractedText, outputExcelPath, '2024-10-10', 1200); // Example delivery date and invoice total
+
+      // Example invoice data based on parsed content (you need to adapt it to your own needs)
+      const invoiceData = {
+        invoiceDate: '2024-10-10',
+        items: [
+          {
+            itemNumber: '001',
+            itemName: 'Sample Item',
+            brand: 'Brand A',
+            packSize: '6x500ml',
+            unitCost: 12.50,
+            quantity: 100,
+            confirmed: 'Yes',
+            status: 'Delivered',
+          },
+          // Add more items based on the extracted text
+        ]
+      };
+
+      // Update the central spreadsheet
+      updateSpreadsheet(invoiceData);
+
+      res.status(200).send({ message: 'File processed and spreadsheet updated', outputExcelPath });
+    } else {
+      res.status(400).send({ message: 'Unsupported file type' });
+    }
   } catch (error) {
-    console.error('Error processing the file:', error);  // Log the error on the server
+    console.error('Error processing the file:', error);
     res.status(500).send({ message: 'Error processing file', error });
   }
 });
