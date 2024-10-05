@@ -1,183 +1,93 @@
-/* Set a modern, elegant font */
-body {
-  font-family: 'Poppins', sans-serif;
-  background: url('/Xseller8logoBnG.png') no-repeat center top;  /* Set the logo as background */
-  background-size: cover;  /* Cover the entire background */
-  margin: 0;
-  padding: 0;
-  color: #f1f1f1;  /* Light text color */
-}
+/* App.css */
 
-/* Main container for the application */
+/* General container adjustments */
 .App {
   text-align: center;
-  padding: 40px;
-  background-color: #2a2a2a;  /* Darker background for the container */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Darker shadow for depth */
-  border-radius: 12px;
-  width: 90%;  /* Use most of the screen width */
-  max-width: 1200px;
-  margin: 20px auto;
+  background-color: #1c1c1c; /* Dark background for contrast */
+  color: #f1c40f; /* Bright text color for contrast */
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
 }
 
-/* Gold accent color for headers */
-h2 {
-  color: #f0c674;  /* Gold */
-  font-size: 2rem;
+/* Branding Image adjustments */
+.branding-image {
+  max-width: 50%; /* Ensures the image scales well on large screens */
+  height: auto;
   margin-bottom: 20px;
 }
 
-h3 {
-  color: #f0c674;  /* Gold */
-}
-
-/* File input and buttons */
-input[type="file"] {
-  display: none;
-}
-
-label {
-  display: inline-block;
-  padding: 12px 24px;
-  background-color: #f0c674;  /* Gold background */
-  color: #1c1c1c;  /* Dark text */
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #f0c674;  /* Gold background */
-  color: #1c1c1c;  /* Dark text */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #d4b360;  /* Slightly darker gold on hover */
-}
-
-p {
-  color: #f1f1f1;  /* Ensure paragraph text is readable */
-}
-
-/* Flexbox container to space out sections */
+/* Content container to hold all other sections */
 .content-container {
   display: flex;
-  justify-content: space-between;
-  margin-top: 40px;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 20px;
 }
 
-.spreadsheet-container, .info-panel-container, .chatbot-container {
-  background-color: #2a2a2a;
+/* Adjust individual sections (spreadsheet, info panel, etc.) */
+.spreadsheet-container, .info-panel-container, .raw-data-container, .chatbot-container {
+  background-color: #2c2c2c;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: #f1f1f1;  /* Ensure text remains light for readability */
+  margin: 10px;
+  border-radius: 10px;
+  flex-basis: 45%;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  min-width: 300px;
 }
 
-/* Spreadsheet styling */
-.spreadsheet-container {
-  width: 65%;  /* Expand width for better visibility */
-  background-color: #2a2a2a;
+/* Adjust the size and layout of the raw data container */
+.raw-data-container {
+  max-height: 300px;
+  overflow-y: scroll; /* Enables scrolling if data is too large */
 }
 
-table {
+/* Chatbot container */
+.chatbot-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Central Spreadsheet Table */
+.spreadsheet-container table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  color: #f1c40f;
 }
 
-table, th, td {
-  border: 1px solid #4a4a4a;  /* Light gray borders */
-  color: #f1f1f1;  /* Light text */
+.spreadsheet-container th, .spreadsheet-container td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
-th {
-  background-color: #f0c674;  /* Gold for headers */
-  color: #1c1c1c;  /* Dark text for contrast */
+/* Upload Button and Save Spreadsheet Button */
+input[type="file"], .save-spreadsheet-button {
+  background-color: #f1c40f;
+  border: none;
+  color: #1c1c1c;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-td {
-  background-color: #333333;  /* Darker background for cells */
-  color: #f1f1f1;
+input[type="file"]:hover, .save-spreadsheet-button:hover {
+  background-color: #d4ac0d;
 }
 
-tbody tr:nth-child(even) {
-  background-color: #444444;  /* Slightly lighter for alternating rows */
-}
-
-.chatbot-container {
-  width: 300px;  /* Make the chatbox wider */
-  height: 300px;  /* Adjust the height for better visibility */
-  margin-top: 20px;  /* Add margin to the top for better spacing */
-}
-
-.chatbot-messages {
-  height: 220px;  /* Adjust chat window height */
-  width: 220px; /* Adjust chat window width */
-  overflow-y: auto;
-  background-color: #333333;  /* Dark background for messages */
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.chatbot-messages p {
-  color: #f1f1f1;  /* Ensure chatbot text is readable */
-  font-size: 1rem;  /* Slightly larger font size */
-}
-
-input[type="text"] {
-  width: calc(100% - 90px);  /* Make input width adapt to button */
-  padding: 10px;
-  margin-right: 10px;
-  border-radius: 8px;
-  border: 1px solid #4a4a4a;
-  background-color: #2a2a2a;  /* Dark input background */
-  color: #f1f1f1;  /* Light text */
-}
-
-
-/* System logs styling */
+/* Info Panel Logs */
 .info-panel-container {
-  width: 30%;
-  height: 400px;  /* Adjust height for better visibility */
+  max-height: 300px;
   overflow-y: auto;
 }
 
-.logs {
-  background-color: #333333;  /* Dark background for logs */
-  padding: 10px;
-  border-radius: 8px;
-  height: 300px;
-  overflow-y: auto;
-  color: #f1f1f1;  /* Ensure log text is readable */
+/* Miscellaneous */
+h2 {
+  margin-bottom: 20px;
+  font-size: 2rem;
 }
-
-.logs p {
-  color: #f1f1f1;  /* Ensure logs are visible */
-  font-size: 0.9rem;
-}
-
-/* Raw PDF Data Styling */
-.raw-data-container {
-  width: 100%;
+/* Spinner Canvas */
+.processing-canvas {
   margin-top: 20px;
-  background-color: #2a2a2a;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: #f1f1f1;  /* Ensure text remains readable */
-}
-
-.raw-data p {
-  margin: 5px 0;
-  color: #f1f1f1;  /* Ensure the text is readable */
-  font-size: 0.9rem;
-  line-height: 1.4rem;
+  background-color: #333;
 }
