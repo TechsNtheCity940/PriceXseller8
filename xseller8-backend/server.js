@@ -2,8 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const { attemptOcr, saveTextToExcel } = require('F:/repogit/Xseller8/Xseller8-backend/processes/imageProcessor'); // Updated path
-const { updateSpreadsheet } = require('F:/repogit/Xseller8/Xseller8-backend/processes/updateSpreadsheet'); // Updated path
+const { attemptOcr, saveTextToExcel } = require('./processors/imageProcessor');
+const { updateSpreadsheet } = require('./processors/updateSpreadsheet');
 const cors = require('cors');
 
 const app = express();
@@ -27,25 +27,26 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       // Save uploaded file temporarily for OCR
       const tempFilePath = `./uploads/${req.file.originalname}`;
       await fs.promises.writeFile(tempFilePath, req.file.buffer);
-
+  
       // Perform OCR to extract text
       const extractedText = await attemptOcr(tempFilePath);
-
+  
       if (!extractedText) {
         return res.status(500).send({ message: 'Failed to extract text from the image' });
       }
-
-      // Generate output path for Excel file based on the uploaded file name
-      outputExcelPath = `./uploads/processed/${path.parse(req.file.originalname).name}_extracted.xlsx`;
-
+  
       // Ensure the processed folder exists
-      if (!fs.existsSync('./uploads/processed')) {
-        fs.mkdirSync('./uploads/processed', { recursive: true });
+      const processedFolder = './uploads/processed';
+      if (!fs.existsSync(processedFolder)) {
+        fs.mkdirSync(processedFolder, { recursive: true });
       }
-
+  
+      // Generate output path for Excel file based on the uploaded file name
+      const outputExcelPath = `${processedFolder}/${path.parse(req.file.originalname).name}_extracted.xlsx`;
+  
       // Save extracted text to an Excel file
       await saveTextToExcel(extractedText, outputExcelPath, '2024-10-10', 1200); // Example delivery date and invoice total
-
+  
       // Example invoice data based on parsed content (you need to adapt it to your own needs)
       const invoiceData = {
         invoiceDate: '2024-10-10',
@@ -63,19 +64,24 @@ app.post('/upload', upload.single('file'), async (req, res) => {
           // Add more items based on the extracted text
         ]
       };
-
+  
       // Update the central spreadsheet
       updateSpreadsheet(invoiceData);
-
-      res.status(200).send({ message: 'File processed and spreadsheet updated', outputExcelPath });
+  
+      // Send the successful response with the path of the processed file
+      res.status(200).send({
+        message: 'File processed and spreadsheet updated',
+        outputExcelPath,
+        extractedData: extractedText, // Optionally return the extracted data
+      });
     } else {
-      res.status(400).send({ message: 'Unsupported file type' });
+      res.status(400).send({ message: 'Unsupported file type. Please upload a PNG or JPG file.' });
     }
   } catch (error) {
-    console.error('Error processing the file:', error);
-    res.status(500).send({ message: 'Error processing file', error });
+    console.error('Error processing file:', error);
+    res.status(500).send({ message: 'Error processing file', error: error.message });
   }
-});
+  
 
 // API endpoint to download the central spreadsheet
 app.get('/download-spreadsheet', (req, res) => {
@@ -87,4 +93,4 @@ app.get('/download-spreadsheet', (req, res) => {
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
+})})
