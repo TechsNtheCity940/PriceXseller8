@@ -13,7 +13,10 @@ const InfoPanel = ({ logs }) => {
       <h3>System Logs</h3>
       <div className="logs">
         {logs.map((log, index) => (
-          <p key={index}>{log}</p>
+          <p key={index}>
+            {/* Check if the log is an object and render its properties, or just render it if it's a string. */}
+            {typeof log === 'object' ? `${log.message} - ${log.type}` : log}
+          </p>
         ))}
         <div ref={logEndRef} /> {/* Empty div for auto-scrolling */}
       </div>

@@ -155,7 +155,7 @@ function App() {
   return (
     <div className="App">
       {/* Branding Image */}
-      <img src="F:/repogit/Xseller8/xseller8-vite/public/Xseller8logoBnG.png" alt="Xseller8" className="branding-image" />
+      <img src="D:/gitrepos/PriceXseller8/xseller8-vite/public/Xseller8logoBnG.png" alt="Xseller8" className="branding-image" />
       <h2>Automate Your Workload</h2>
 
       {/* Custom button for file upload */}
