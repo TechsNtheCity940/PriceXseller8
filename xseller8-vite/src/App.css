@@ -1,88 +1,36 @@
-/* App.css */
-
-/* General container adjustments */
-.App {
-  text-align: center;
-  background-color: #1c1c1c; /* Dark background for contrast */
-  color: #f1c40f; /* Bright text color for contrast */
-  padding: 20px;
+body {
+  background-image: url('/Xseller8LogoBNG.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  color: #ffd700; /* Gold-like color */
   font-family: 'Arial', sans-serif;
 }
 
-/* Branding Image adjustments */
-.branding-image {
-  max-width: 50%; /* Ensures the image scales well on large screens */
-  height: auto;
-  margin-bottom: 20px;
+h2 {
+  color: #ffd700;
 }
 
-/* Content container to hold all other sections */
-.content-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-/* Adjust individual sections (spreadsheet, info panel, etc.) */
-.spreadsheet-container, .info-panel-container, .raw-data-container, .chatbot-container {
-  background-color: #2c2c2c;
-  padding: 20px;
-  margin: 10px;
-  border-radius: 10px;
-  flex-basis: 45%;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-  min-width: 300px;
-}
-
-/* Adjust the size and layout of the raw data container */
-.raw-data-container {
-  max-height: 300px;
-  overflow-y: scroll; /* Enables scrolling if data is too large */
-}
-
-/* Chatbot container */
-.chatbot-container {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-/* Central Spreadsheet Table */
-.spreadsheet-container table {
-  width: 100%;
-  border-collapse: collapse;
-  color: #f1c40f;
-}
-
-.spreadsheet-container th, .spreadsheet-container td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-/* Upload Button and Save Spreadsheet Button */
-input[type="file"], .save-spreadsheet-button {
-  background-color: #f1c40f;
+button {
+  background-color: #ffd700;
+  color: #000;
   border: none;
-  color: #1c1c1c;
   padding: 10px 20px;
-  margin: 10px;
-  border-radius: 5px;
   cursor: pointer;
 }
 
-input[type="file"]:hover, .save-spreadsheet-button:hover {
-  background-color: #d4ac0d;
+button:hover {
+  background-color: #ffa500; /* Darker gold on hover */
 }
 
-/* Info Panel Logs */
-.info-panel-container {
-  max-height: 300px;
-  overflow-y: auto;
+p {
+  color: #ffd700;
 }
 
-/* Miscellaneous */
-h2 {
+.spreadsheet-container, .raw-data-container, .info-panel-container, .chatbot-container {
+  background-color: #333;
+  padding: 10px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 2rem;
 }

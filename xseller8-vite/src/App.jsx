@@ -47,7 +47,7 @@ function App() {
         addLog(`File uploaded and processed: ${response.data.message}`, 'success');
 
         // Set the raw PDF data to display real-time extracted data
-        if (response.data.extractedData && response.data.extractedData.rawData) {
+        if (response.data.extractedData && Array.isArray(response.data.extractedData.rawData)) {
           setRawData(response.data.extractedData.rawData);
           addLog('Raw data successfully extracted and displayed.', 'success');
         } else {
@@ -124,38 +124,10 @@ function App() {
       });
   };
 
-  // Canvas drawing function
-  const drawOnCanvas = () => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    // Simple visual: a spinner indicating processing
-    let angle = 0;
-    const draw = () => {
-      context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-      context.save();
-      context.translate(canvas.width / 2, canvas.height / 2); // Move the center
-      context.rotate(angle); // Rotate for spinning effect
-      context.beginPath();
-      context.arc(0, 0, 50, 0, Math.PI * 2);
-      context.strokeStyle = 'yellow';
-      context.lineWidth = 5;
-      context.stroke();
-      context.restore();
-      angle += 0.05; // Increment angle for rotation
-      requestAnimationFrame(draw); // Continue animation
-    };
-    draw(); // Start the drawing loop
-  };
-
-  useEffect(() => {
-    drawOnCanvas(); // Start canvas animation on mount
-  }, []);
-
   return (
     <div className="App">
       {/* Branding Image */}
-      <img src="D:/gitrepos/PriceXseller8/xseller8-vite/public/Xseller8logoBnG.png" alt="Xseller8" className="branding-image" />
+      <img src="/Xseller8logo1.png" alt="Xseller8" className="branding-image" />
       <h2>Automate Your Workload</h2>
 
       {/* Custom button for file upload */}
@@ -165,41 +137,35 @@ function App() {
       <button onClick={onFileUpload}>Upload and Process File</button>
       <p>{message}</p>
 
-      {/* Canvas for visual feedback */}
-      <canvas ref={canvasRef} width="150" height="150" className="processing-canvas" />
-
-      <div className="content-container">
-        {/* Central Spreadsheet */}
-        <div className="spreadsheet-container">
-          <h3>Central Spreadsheet Data</h3>
-          <SpreadsheetTable data={spreadsheetData} />
-        </div>
-
-        {/* Info Panel */}
-        <div className="info-panel-container">
-          <InfoPanel logs={logs} />
-        </div>
-
-        {/* Raw PDF Data Display */}
-        <div className="raw-data-container">
-          <h3>Raw Data Extracted</h3>
-          <div className="raw-data">
-            {rawData.map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </div>
-        </div>
-
-        {/* Chatbot */}
-        <div className="chatbot-container">
-          <Chatbot log={chatLog} />
-        </div>
-
-        {/* Add Save Updated Spreadsheet Button */}
-        <button className="save-spreadsheet-button" onClick={downloadSpreadsheet}>
-          Save Updated Spreadsheet
-        </button>
+      <div className="spreadsheet-container">
+        <h3>Central Spreadsheet Data</h3>
+        <SpreadsheetTable data={spreadsheetData} />
       </div>
+      
+      {/* Info Panel */}
+      <div className="info-panel-container">
+        <InfoPanel logs={logs} />
+      </div>
+
+      {/* Raw PDF Data Display */}
+      <div className="raw-data-container">
+        <h3>Raw Data Extracted</h3>
+        <div className="raw-data">
+          {rawData.map((line, index) => (
+            <p key={index}>{line}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Chatbot */}
+      <div className="chatbot-container">
+        <Chatbot log={chatLog} />
+      </div>
+
+      {/* Add Save Updated Spreadsheet Button */}
+      <button className="save-spreadsheet-button" onClick={downloadSpreadsheet}>
+        Save Updated Spreadsheet
+      </button>
     </div>
   );
 }
