@@ -5,8 +5,8 @@ const Chatbot = () => {
   const [userInput, setUserInput] = useState('');
   const chatEndRef = useRef(null);
 
+  // Fetch and display conversation history for the current session
   useEffect(() => {
-    // Fetch and display conversation history for the current session
     fetchConversationHistory()
       .then((history) => {
         setMessages((prevMessages) => [
@@ -37,7 +37,7 @@ const Chatbot = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ prompt: input }),
+          body: JSON.stringify({ user_id: 'user123', prompt: input }),
         });
 
         const data = await response.json();
@@ -55,7 +55,7 @@ const Chatbot = () => {
 
   const fetchConversationHistory = async () => {
     try {
-      const response = await fetch('http://localhost:5000/session/history', {
+      const response = await fetch('http://localhost:5000/session/history?user_id=user123', {
         headers: {
           'Content-Type': 'application/json',
         },

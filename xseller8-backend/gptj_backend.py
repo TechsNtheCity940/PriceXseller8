@@ -1,4 +1,5 @@
-import sqlite3
+import os
+import json
 from flask import Flask, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
@@ -7,48 +8,62 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+# Define the directory for conversation storage
+CONVERSATION_DIR = 'F:/Datasets/PiggieSmalls'
+
 # Load the GPT-J model and tokenizer
-model_name = "EleutherAI/gpt-neo-1.3B"  # Use GPT-Neo to reduce memory footprint
-model = AutoModelForCausalLM.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+model_name = "Wonder-Griffin/judge-xl-model"  # Use GPT-Neo to reduce memory footprint
+model = AutoModelForCausalLM.from_pretrained("Wonder-Griffin/judge-xl-model", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("Wonder-Griffin/judge-xl-model")
 
 # If you have a GPU, move the model to GPU
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-# Database setup
-conn = sqlite3.connect('conversation_history.db', check_same_thread=False)  # Add check_same_thread=False for multithreading
-cursor = conn.cursor()
-cursor.execute('''CREATE TABLE IF NOT EXISTS conversations (
-    user_id TEXT,
-    conversation_summary TEXT,
-    key_insights TEXT
-)''')
-conn.commit()
+# Helper function to load conversation history from JSON
+def load_conversation_history(user_id):
+    filepath = os.path.join(CONVERSATION_DIR, f"{user_id}_conversation.json")
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as file:
+            return json.load(file)
+    return {"conversation_summary": "", "key_insights": ""}
 
-# Function to generate AI response with conversation history
+# Helper function to save conversation history to JSON
+def save_conversation_history(user_id, conversation_summary, key_insights):
+    filepath = os.path.join(CONVERSATION_DIR, f"{user_id}_conversation.json")
+    with open(filepath, 'w') as file:
+        json.dump({"conversation_summary": conversation_summary, "key_insights": key_insights}, file)
+
+# Generate AI response and update conversation history
 def generate_response_with_history(user_id, prompt):
-    # Retrieve conversation history for the user
-    cursor.execute("SELECT conversation_summary, key_insights FROM conversations WHERE user_id=?", (user_id,))
-    history = cursor.fetchone()
+    history = load_conversation_history(user_id)
+    conversation_summary = history.get("conversation_summary", "")
+    key_insights = history.get("key_insights", "")
+
+    prompt_with_history = f"Previous conversation summary: {conversation_summary}. Key insights: {key_insights}. New prompt: {prompt}"
     
-    if history:
-        conversation_summary, key_insights = history
-        prompt = f"Previous conversation summary: {conversation_summary}. Key insights: {key_insights}. New prompt: {prompt}"
-    
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    # Generate AI response
+    inputs = tokenizer(prompt_with_history, return_tensors="pt").to(device)
     outputs = model.generate(inputs.input_ids, max_length=200, do_sample=True)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    # Save the conversation summary and key insights
-    conversation_summary = f"User {user_id} discussed {prompt} and received response: {response}"
-    key_insights = "Key insights from the conversation..."  # You can extract insights from the response here
-    cursor.execute("INSERT INTO conversations (user_id, conversation_summary, key_insights) VALUES (?, ?, ?)", (user_id, conversation_summary, key_insights))
-    conn.commit()
+    # Update conversation history
+    conversation_summary = f"{conversation_summary} {prompt}. AI: {response}"
+    key_insights = f"{key_insights} Insights from the new conversation..."  # Example logic for key insights
+    
+    # Save updated conversation history
+    save_conversation_history(user_id, conversation_summary, key_insights)
     
     return response
 
-# Define a single route for AI interaction with conversation history
+# Define a route to get conversation history
+@app.route('/session/history', methods=['GET'])
+def get_conversation_history():
+    user_id = request.args.get('user_id', 'anonymous')
+    history = load_conversation_history(user_id)
+    return jsonify(history)
+
+# Define a route for AI interaction with conversation history
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -58,11 +73,8 @@ def chat():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
     
-    try:
-        ai_response = generate_response_with_history(user_id, prompt)
-        return jsonify({"response": ai_response})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    ai_response = generate_response_with_history(user_id, prompt)
+    return jsonify({"response": ai_response})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
