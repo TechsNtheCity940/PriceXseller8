@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { attemptOcr, saveTextToExcel } = require('./processors/imageProcessor');
 const { updateSpreadsheet } = require('./processors/updateSpreadsheet');
+const { parseExtractedData } = require('./processors/parseExtractedData'); // Import the parser
 const cors = require('cors');
 
 const app = express();
@@ -37,9 +38,12 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       }
   
       const outputExcelPath = `${processedFolder}/${path.parse(req.file.originalname).name}_extracted.xlsx`;
-      await saveTextToExcel(extractedText, outputExcelPath, '2024-10-10', 1200);
+      await saveTextToExcel(extractedText, outputExcelPath, '2024-10-10', 1200); // Example date and total
+
+      // Parse the extracted text
+      const invoiceData = parseExtractedData(extractedText); // This now works
   
-      const invoiceData = parseExtractedData(extractedText);
+      // Update the necessary spreadsheets (Flash Report, Cost Tracker, etc.)
       updateSpreadsheet(invoiceData);
   
       res.status(200).send({
@@ -54,4 +58,10 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     console.error('Error processing file:', error);
     res.status(500).send({ message: 'Error processing file', error: error.message });
   }
+});
+
+// Start the server
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
