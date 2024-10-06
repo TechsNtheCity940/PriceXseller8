@@ -12,23 +12,20 @@ function App() {
   const [spreadsheetData, setSpreadsheetData] = useState([]);
   const [logs, setLogs] = useState([]);
   const [chatLog, setChatLog] = useState('');
-  const [rawData, setRawData] = useState([]); // To hold the raw PDF data
+  const [rawData, setRawData] = useState([]);
   const canvasRef = useRef(null);
 
-  // Add log entries with type (success, error, info)
   const addLog = (log, type = 'info') => {
     setLogs((prevLogs) => [...prevLogs, { message: log, type }]);
     setChatLog(log); // Pass log to chatbot
   };
 
-  // Handle file selection
   const onFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
     setMessage('');
     addLog(`File selected: ${event.target.files[0].name}`, 'info');
   };
 
-  // Handle file upload
   const onFileUpload = () => {
     if (!selectedFile) {
       alert('Please select a file before uploading.');
@@ -46,7 +43,6 @@ function App() {
         setMessage(response.data.message);
         addLog(`File uploaded and processed: ${response.data.message}`, 'success');
 
-        // Set the raw PDF data to display real-time extracted data
         if (response.data.extractedData && Array.isArray(response.data.extractedData.rawData)) {
           setRawData(response.data.extractedData.rawData);
           addLog('Raw data successfully extracted and displayed.', 'success');
@@ -63,7 +59,6 @@ function App() {
       });
   };
 
-  // Fetch and parse the central spreadsheet
   const loadSpreadsheet = () => {
     addLog('Loading spreadsheet data...', 'info');
     axios
@@ -75,7 +70,6 @@ function App() {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
 
-            // Convert first sheet to JSON
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
@@ -83,7 +77,6 @@ function App() {
               throw new Error('Spreadsheet is empty or data is invalid.');
             }
 
-            // Set spreadsheet data for rendering
             setSpreadsheetData(jsonData);
             addLog('Spreadsheet data successfully loaded and displayed.', 'success');
           } catch (error) {
@@ -100,22 +93,21 @@ function App() {
       });
   };
 
-  // Function to download the updated spreadsheet
   const downloadSpreadsheet = () => {
     addLog('Downloading the updated spreadsheet...', 'info');
     axios({
       url: 'http://localhost:5000/download-spreadsheet',
       method: 'GET',
-      responseType: 'blob', // Important to receive the file as a blob
+      responseType: 'blob',
     })
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'updated_spreadsheet.xlsx'); // Specify the file name
+        link.setAttribute('download', 'updated_spreadsheet.xlsx');
         document.body.appendChild(link);
-        link.click(); // Trigger the download
-        link.parentNode.removeChild(link); // Clean up the element
+        link.click();
+        link.parentNode.removeChild(link);
         addLog('Spreadsheet successfully downloaded.', 'success');
       })
       .catch((error) => {
@@ -126,43 +118,51 @@ function App() {
 
   return (
     <div className="App">
-      {/* Branding Image */}
-      <img src="D:/GitRepos/PriceXseller8/xseller8-vite/public/Xseller8logo1.png" alt="Xseller8" className="branding-image" />
-      <h2>Automate Your Workload</h2>
+      {/* Branding Section */}
+      <header className="branding-header">
+        <img src="/Xseller8Logo2.png" alt="Xseller8 Logo" className="branding-image" />
+        <h2>Xseller8 Your Day</h2>
+        <p>Automate your workload and Xseller8 your tasks.</p>
+      </header>
 
-      {/* Custom button for file upload */}
-      <input type="file" id="file" onChange={onFileChange} />
-      <label htmlFor="file">Browse...</label>
-
-      <button onClick={onFileUpload}>Upload and Process File</button>
-      <p>{message}</p>
-
-      <div className="spreadsheet-container">
-        <h3>Central Spreadsheet Data</h3>
-        <SpreadsheetTable data={spreadsheetData} />
-      </div>
-      
-      {/* Info Panel */}
-      <div className="info-panel-container">
-        <InfoPanel logs={logs} />
-      </div>
-
-      {/* Raw PDF Data Display */}
-      <div className="raw-data-container">
-        <h3>Raw Data Extracted</h3>
-        <div className="raw-data">
-          {rawData.map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
+      {/* File Upload Section */}
+      <section className="file-upload-section">
+        <div className="file-drop-area">
+          <input type="file" id="file" onChange={onFileChange} className="file-input" />
+          <label htmlFor="file" className="file-label">
+            <div className="upload-icon">&#8682;</div>
+            <span>Drag and drop your file here, or click to browse</span>
+          </label>
         </div>
-      </div>
+        <button onClick={onFileUpload} className="upload-button">Upload and Process File</button>
+        <p className="status-message">{message}</p>
+      </section>
+
+      {/* Data Panels */}
+      <section className="data-panels">
+        <div className="panel spreadsheet-container">
+          <h3>Central Spreadsheet Data</h3>
+          <SpreadsheetTable data={spreadsheetData} />
+        </div>
+        <div className="panel info-panel-container">
+          <InfoPanel logs={logs} />
+        </div>
+        <div className="panel raw-data-container">
+          <h3>Raw Data Extracted</h3>
+          <div className="raw-data">
+            {rawData.map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Chatbot */}
-      <div className="chatbot-container">
+      <div className="chatbot-widget">
         <Chatbot log={chatLog} />
       </div>
 
-      {/* Add Save Updated Spreadsheet Button */}
+      {/* Save Spreadsheet Button */}
       <button className="save-spreadsheet-button" onClick={downloadSpreadsheet}>
         Save Updated Spreadsheet
       </button>

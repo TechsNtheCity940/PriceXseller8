@@ -1,36 +1,137 @@
+/* Body styling */
 body {
-  background-image: url('D:/GitRepos/PriceXseller8/xseller8-vite/public/Xseller8logoBnG.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-position: center;
-  color: #ffd700; /* Gold-like color */
-  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #1a1a1a, #333333);
+  color: #ffd700;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.branding-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.branding-image {
+  max-width: 150px;
+  margin-bottom: 20px;
 }
 
 h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #ffd700;
-}
-
-button {
-  background-color: #ffd700;
-  color: #000;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #ffa500; /* Darker gold on hover */
+  text-shadow: 2px 2px #000;
 }
 
 p {
+  font-size: 1.2rem;
+  color: #ddd;
+}
+
+/* File Upload Section */
+.file-upload-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.file-drop-area {
+  border: 2px dashed #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  display: inline-block;
+  margin-bottom: 20px;
+  transition: border-color 0.3s ease;
+}
+
+.file-drop-area:hover {
+  border-color: #ffa500;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: inline-block;
+  cursor: pointer;
   color: #ffd700;
 }
 
-.spreadsheet-container, .raw-data-container, .info-panel-container, .chatbot-container {
+.upload-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.upload-button {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #ffa500;
+  box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6);
+}
+
+.status-message {
+  color: #ffd700;
+}
+
+/* Data Panels */
+.data-panels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.panel {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+}
+
+h3 {
+  margin-top: 0;
+}
+
+/* Chatbot Widget */
+.chatbot-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   background-color: #333;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+  z-index: 1000;
+}
+
+/* Save Button */
+.save-spreadsheet-button {
+  background-color: #ffd700;
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-spreadsheet-button:hover {
+  background-color: #ffa500;
+  box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6);
 }

@@ -1,34 +1,68 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Chatbot = ({ log }) => {
-  const [messages, setMessages] = useState([
-    'Welcome to Xseller8! How can I assist you today?',
-  ]);
+const Chatbot = () => {
+  const [messages, setMessages] = useState([]);
+  const [userInput, setUserInput] = useState('');
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-    if (log) {
-      setMessages((prevMessages) => [...prevMessages, `System: ${log}`]);
-    }
-  }, [log]);
+    // Fetch and display conversation history for the current session
+    fetchConversationHistory()
+      .then((history) => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          `Conversation History: ${history.conversation_summary}`,
+          `Key Insights: ${history.key_insights}`,
+        ]);
+      })
+      .catch((error) => {
+        setMessages((prevMessages) => [...prevMessages, 'Error: Unable to fetch conversation history.']);
+      });
+  }, []);
 
-  // Auto-scroll to the latest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleUserInput = (e) => {
+  const handleUserInput = async (e) => {
     e.preventDefault();
-    const input = e.target.elements.userInput.value;
+    const input = userInput;
     if (input) {
       setMessages((prevMessages) => [...prevMessages, `User: ${input}`]);
-      e.target.elements.userInput.value = ''; // Clear the input
+      setUserInput('');
 
-      // Simulate an AI response (stubbed)
-      setTimeout(() => {
-        const aiResponse = `AI: I'm learning from your data. Ask me anything about Xseller8.`;
-        setMessages((prevMessages) => [...prevMessages, aiResponse]);
-      }, 1000); // Simulate delay for AI response
+      try {
+        const response = await fetch('http://localhost:5000/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: input }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setMessages((prevMessages) => [...prevMessages, `AI: ${data.response}`]);
+        } else {
+          setMessages((prevMessages) => [...prevMessages, `Error: ${data.error}`]);
+        }
+      } catch (error) {
+        setMessages((prevMessages) => [...prevMessages, 'Error: Unable to connect to the AI service.']);
+      }
+    }
+  };
+
+  const fetchConversationHistory = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/session/history', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return await response.json();
+    } catch (error) {
+      throw new Error('Failed to fetch conversation history.');
     }
   };
 
@@ -39,10 +73,15 @@ const Chatbot = ({ log }) => {
         {messages.map((msg, index) => (
           <p key={index}>{msg}</p>
         ))}
-        <div ref={chatEndRef} /> {/* Empty div for auto-scrolling */}
+        <div ref={chatEndRef} />
       </div>
       <form onSubmit={handleUserInput}>
-        <input type="text" name="userInput" placeholder="Ask the chatbot..." />
+        <input
+          type="text"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          placeholder="Ask the chatbot..."
+        />
         <button type="submit">Send</button>
       </form>
     </div>
