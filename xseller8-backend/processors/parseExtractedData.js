@@ -1,3 +1,17 @@
+// Example fix for parseExtractedData.js
+function parseExtractedData(data) {
+  data.forEach((item, index) => {
+      // Check if the property you're trying to replace is defined
+      if (item && typeof item.someProperty === 'string') {
+          data[index].someProperty = item.someProperty.replace(/pattern/g, 'replacement');
+      } else {
+          console.error(`Invalid data at index ${index}:`, item);
+      }
+  });
+
+  return data;
+}
+
 // Function to parse extracted text data from the OCR output
 function parseExtractedData(extractedText) {
   const lines = extractedText.split('\n');

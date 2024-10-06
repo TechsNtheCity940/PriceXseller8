@@ -3,11 +3,12 @@ from flask import Flask, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from flask_cors import CORS
+
 app = Flask(__name__)
 CORS(app)
 
 # Load the GPT-J model and tokenizer
-model_name = "EleutherAI/gpt-neo-1.3B"
+model_name = "EleutherAI/gpt-neo-1.3B"  # Use GPT-Neo to reduce memory footprint
 model = AutoModelForCausalLM.from_pretrained(model_name)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -16,7 +17,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
 # Database setup
-conn = sqlite3.connect('conversation_history.db')
+conn = sqlite3.connect('conversation_history.db', check_same_thread=False)  # Add check_same_thread=False for multithreading
 cursor = conn.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS conversations (
     user_id TEXT,
@@ -47,7 +48,7 @@ def generate_response_with_history(user_id, prompt):
     
     return response
 
-# Define a route for AI interaction with conversation history
+# Define a single route for AI interaction with conversation history
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -57,27 +58,11 @@ def chat():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
     
-    ai_response = generate_response_with_history(user_id, prompt)
-    return jsonify({"response": ai_response})
-
-# Function to generate AI response
-def generate_response(prompt):
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    outputs = model.generate(inputs.input_ids, max_length=200, do_sample=True)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return response
-
-# Define a route for AI interaction
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json
-    prompt = data.get("prompt", "")
-    if not prompt:
-        return jsonify({"error": "No prompt provided"}), 400
-    
-    # Generate AI response
-    ai_response = generate_response(prompt)
-    return jsonify({"response": ai_response})
+    try:
+        ai_response = generate_response_with_history(user_id, prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
