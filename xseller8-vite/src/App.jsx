@@ -69,15 +69,15 @@ function App() {
           try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-
+  
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
+  
             if (jsonData.length === 0) {
               throw new Error('Spreadsheet is empty or data is invalid.');
             }
-
-            setSpreadsheetData(jsonData);
+  
+            setSpreadsheetData(jsonData);  // Show organized data in the UI
             addLog('Spreadsheet data successfully loaded and displayed.', 'success');
           } catch (error) {
             console.error('Error processing spreadsheet:', error);
