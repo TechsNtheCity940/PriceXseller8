@@ -23,18 +23,14 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
   try {
     if (ext === '.png' || ext === '.jpg') {
-      // Save uploaded file temporarily for OCR
+      // Image processing logic...
+    } else if (ext === '.xlsx') {
       const tempFilePath = `./uploads/${req.file.originalname}`;
       await fs.promises.writeFile(tempFilePath, req.file.buffer);
-      console.log(`File saved temporarily at: ${tempFilePath}`);
 
-      // Perform OCR to extract text
-      const extractedText = await attemptOcr(tempFilePath);
-      if (!extractedText) {
-        return res.status(500).send({ message: 'Failed to extract text from the image' });
-      }
-
-      console.log(`Extracted text: ${extractedText.slice(0, 100)}...`); // Log the first 100 characters of extracted text
+      // Load and process the Excel file here (using updateSpreadsheet for instance)
+      const extractedData = await parseExtractedData(tempFilePath);
+      const outputExcelPath = `./uploads/processed/${path.parse(req.file.originalname).name}_organized.xlsx`;
 
       // Ensure the processed folder exists
       const processedFolder = './uploads/processed';
@@ -42,38 +38,23 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         fs.mkdirSync(processedFolder, { recursive: true });
       }
 
-      // Generate output path for Excel file based on the uploaded file name
-      const outputExcelPath = `${processedFolder}/${path.parse(req.file.originalname).name}_extracted.xlsx`;
-      console.log(`Saving extracted data to: ${outputExcelPath}`);
+      // Organize and save the processed Excel file
+      await updateSpreadsheet(extractedData, outputExcelPath);
 
-      // Save extracted text to an Excel file
-      await saveTextToExcel(extractedText, outputExcelPath, '2024-10-10', 1200); // Example date and total
-      console.log('Text successfully saved to Excel.');
-
-      // Parse the extracted text
-      console.log('Parsing extracted text...');
-      const invoiceData = parseExtractedData(extractedText);
-      console.log('Parsed Invoice Data:', invoiceData);
-
-      // Update the necessary spreadsheets (Flash Report, Cost Tracker, etc.)
-      updateSpreadsheet(invoiceData);
-      console.log('Spreadsheet successfully updated.');
-
-      // Send the successful response with the path of the processed file
       res.status(200).send({
-        message: 'File processed and spreadsheets updated',
+        message: 'Excel file processed and organized',
         outputExcelPath,
-        extractedData: extractedText, // Optionally return the extracted data
+        extractedData: { rawData: extractedData }, // Send processed data back to the frontend
       });
     } else {
-      res.status(400).send({ message: 'Unsupported file type. Please upload a PNG or JPG file.' });
+      res.status(400).send({ message: 'Unsupported file type. Please upload an Excel, PNG, or JPG file.' });
     }
   } catch (error) {
-    console.error('Error processing file:', error.message); // Log the error message
+    console.error('Error processing file:', error.message);
     res.status(500).send({ message: 'Error processing file', error: error.message });
   }
 });
-
+ 
 // Start the server outside of routes
 try {
   const PORT = 5000;

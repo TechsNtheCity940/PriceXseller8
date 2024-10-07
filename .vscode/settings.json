@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "xseller8-backend"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}
